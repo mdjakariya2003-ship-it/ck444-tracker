@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0d">
+<meta name="description" content="Manual multiplier tracker and statistics. Not a prediction tool.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>CK444 Aviator Tracker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1 data-i18n="app_title">CK444 Aviator ট্র্যাকার</h1>
+  <span id="modeBadge" class="badge" hidden></span>
+</header>
+<div id="demoBanner" class="banner" hidden data-i18n="demo_banner"></div>
+
+<main>
+  <!-- Manual entry (shown on Dashboard and History) -->
+  <section id="entryCard" class="card">
+    <h2 data-i18n="entry_title">নতুন ফলাফল যোগ করুন</h2>
+    <p class="small" data-i18n="entry_hint"></p>
+    <div class="entry-row">
+      <input id="entryInput" type="text" inputmode="decimal" autocomplete="off" placeholder="2.40x" aria-label="multiplier">
+      <button id="entryBtn" class="btn" type="button" data-i18n="entry_btn">যোগ করুন</button>
+    </div>
+    <p id="entryError" class="err" role="alert"></p>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="view-dashboard" class="view">
+    <div class="grid">
+      <div class="stat"><span class="label" data-i18n="stat_total"></span><span id="statTotal" class="value">-</span></div>
+      <div class="stat"><span class="label" data-i18n="stat_avg"></span><span id="statAvg" class="value">-</span></div>
+      <div class="stat"><span class="label" data-i18n="stat_below"></span><span id="statBelow" class="value">-</span></div>
+      <div class="stat"><span class="label" data-i18n="stat_above"></span><span id="statAbove" class="value">-</span></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="recent">সাম্প্রতিক রাউন্ড</h2>
+      <ul id="recentList" class="list"></ul>
+    </div>
+    <div class="card note" data-i18n="disclaimer"></div>
+  </section>
+
+  <!-- History -->
+  <section id="view-history" class="view">
+    <div class="card">
+      <h2 data-i18n="history_title">সব রাউন্ড</h2>
+      <ul id="historyList" class="list"></ul>
+      <button id="moreBtn" class="btn ghost" type="button" hidden data-i18n="more"></button>
+    </div>
+  </section>
+
+  <!-- Analysis -->
+  <section id="view-analysis" class="view">
+    <div class="card">
+      <h2 data-i18n="an_title">পরিসংখ্যান বিশ্লেষণ</h2>
+      <p class="small" id="anNote" data-i18n="an_note"></p>
+      <div class="grid" id="anStats"></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="chart_hist"></h2>
+      <canvas id="histCanvas" class="chart"></canvas>
+      <table class="table"><thead><tr>
+        <th data-i18n="th_range"></th><th data-i18n="th_count"></th><th data-i18n="th_pct"></th>
+      </tr></thead><tbody id="bucketBody"></tbody></table>
+    </div>
+    <div class="card">
+      <h2 data-i18n="chart_line"></h2>
+      <canvas id="lineCanvas" class="chart"></canvas>
+    </div>
+    <div class="card">
+      <h2 data-i18n="ind_title"></h2>
+      <div id="indBox"></div>
+    </div>
+    <div class="card signal">
+      <h2 data-i18n="sig_title"></h2>
+      <div id="signalBox"></div>
+    </div>
+    <div class="card note" data-i18n="disclaimer"></div>
+  </section>
+
+  <!-- Settings -->
+  <section id="view-settings" class="view">
+    <div class="card">
+      <h2 data-i18n="set_lang"></h2>
+      <div class="seg">
+        <button type="button" class="btn ghost" data-lang="bn">বাংলা</button>
+        <button type="button" class="btn ghost" data-lang="en">English</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="set_mode"></h2>
+      <div class="seg">
+        <button type="button" class="btn ghost" data-mode="real" data-i18n="mode_real"></button>
+        <button type="button" class="btn ghost" data-mode="demo" data-i18n="mode_demo"></button>
+      </div>
+      <p class="small" data-i18n="mode_note"></p>
+    </div>
+    <div class="card">
+      <h2 data-i18n="set_k"></h2>
+      <select id="kSelect" aria-label="streak length">
+        <option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+      </select>
+    </div>
+    <div class="card">
+      <h2 data-i18n="set_data"></h2>
+      <button id="exportBtn" class="btn ghost block" type="button" data-i18n="set_export"></button>
+      <button id="demoLoadBtn" class="btn ghost block" type="button" data-i18n="set_demo_load"></button>
+      <button id="demoClearBtn" class="btn ghost block" type="button" data-i18n="set_demo_clear"></button>
+      <button id="deleteAllBtn" class="btn danger block" type="button" data-i18n="set_delete_all"></button>
+      <button id="installBtn" class="btn block" type="button" hidden data-i18n="install"></button>
+    </div>
+    <div class="card">
+      <h2 data-i18n="live_title"></h2>
+      <p class="small" data-i18n="live_body"></p>
+    </div>
+    <div class="card note" data-i18n="disclaimer"></div>
+  </section>
+</main>
+
+<nav class="nav" aria-label="main">
+  <button type="button" data-view="dashboard" data-i18n="nav_dashboard"></button>
+  <button type="button" data-view="history" data-i18n="nav_history"></button>
+  <button type="button" data-view="analysis" data-i18n="nav_analysis"></button>
+  <button type="button" data-view="settings" data-i18n="nav_settings"></button>
+</nav>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true">
+    <h2 id="modalTitle"></h2>
+    <p id="modalMsg"></p>
+    <input id="modalInput" type="text" inputmode="decimal" autocomplete="off" hidden>
+    <p id="modalErr" class="err"></p>
+    <div class="row">
+      <button id="modalCancel" type="button" class="btn ghost"></button>
+      <button id="modalOk" type="button" class="btn"></button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

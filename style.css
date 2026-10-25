@@ -1,0 +1,106 @@
+:root {
+  --bg: #0b0b0d;
+  --card: #16161a;
+  --card2: #1f1f25;
+  --red: #e10600;
+  --red-dark: #9a0400;
+  --text: #ffffff;
+  --muted: #b4b4bf;
+  --line: #2b2b33;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body {
+  font-family: system-ui, -apple-system, "Noto Sans Bengali", "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  background-image: radial-gradient(circle at 100% 0%, rgba(225, 6, 0, .18), transparent 45%);
+  background-repeat: no-repeat;
+}
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
+  border-bottom: 2px solid var(--red);
+  background: #000;
+  position: sticky; top: 0; z-index: 5;
+}
+.topbar h1 { font-size: 20px; margin: 0; letter-spacing: .2px; }
+.badge { background: var(--red); color: #fff; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+.banner { background: #3a0a08; border-bottom: 1px solid var(--red); color: #fff; padding: 10px 16px; font-size: 15px; }
+main { max-width: 640px; margin: 0 auto; padding: 12px; }
+.view { display: none; }
+.view.active { display: block; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.card h2 { font-size: 19px; margin: 0 0 8px; }
+.card.note { font-size: 15px; color: var(--muted); border-left: 4px solid var(--red); white-space: pre-line; }
+.card.signal { border-color: var(--red); }
+.small { font-size: 14px; color: var(--muted); margin: 4px 0 8px; }
+.err { color: #ff6b66; font-size: 15px; min-height: 1.2em; margin: 6px 0 0; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.card .grid { margin-bottom: 0; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; }
+.card .stat { background: var(--card2); }
+.stat .label { font-size: 14px; color: var(--muted); }
+.stat .value { font-size: 28px; font-weight: 800; color: #fff; }
+.stat .value.red { color: var(--red); }
+.entry-row { display: flex; gap: 8px; }
+input[type=text], select {
+  flex: 1; min-width: 0; font-size: 24px; font-weight: 700; padding: 10px 12px; min-height: 54px;
+  background: #000; color: #fff; border: 2px solid var(--line); border-radius: 12px;
+}
+select { width: 100%; font-size: 20px; }
+input[type=text]:focus, select:focus { outline: none; border-color: var(--red); }
+.btn {
+  min-height: 54px; padding: 0 18px; font-size: 18px; font-weight: 700; color: #fff;
+  background: var(--red); border: 2px solid var(--red); border-radius: 12px; cursor: pointer;
+}
+.btn:active { background: var(--red-dark); }
+.btn.ghost { background: transparent; border-color: #555; }
+.btn.ghost.on { border-color: var(--red); background: rgba(225, 6, 0, .2); }
+.btn.danger { background: #000; border-color: var(--red); color: #ff6b66; }
+.btn.small { min-height: 44px; font-size: 15px; padding: 0 12px; }
+.btn.block { display: block; width: 100%; margin-bottom: 10px; }
+.seg { display: flex; gap: 8px; }
+.seg .btn { flex: 1; padding: 0 8px; font-size: 16px; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.list li:last-child { border-bottom: 0; }
+.mult { font-size: 24px; font-weight: 800; min-width: 96px; }
+.mult.low { color: #fff; }
+.mult.mid { color: var(--red); }
+.mult.high { color: #ff3b30; text-shadow: 0 0 10px rgba(255, 59, 48, .6); }
+.time { font-size: 13px; color: var(--muted); flex: 1; text-align: right; }
+.demo-tag { font-size: 11px; background: #fff; color: #000; border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+.actions { display: flex; gap: 6px; }
+.chart { width: 100%; height: 220px; display: block; background: #000; border-radius: 10px; margin-bottom: 10px; }
+.table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.table th, .table td { padding: 6px 4px; text-align: left; border-bottom: 1px solid var(--line); }
+.tag { display: inline-block; background: #000; color: #ff6b66; border: 1px solid var(--red); border-radius: 999px; padding: 3px 12px; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.insuf { font-size: 22px; font-weight: 800; color: var(--muted); margin: 6px 0; }
+.status { padding: 10px; border-radius: 10px; background: var(--card2); margin: 8px 0; }
+.status.on { border-left: 4px solid var(--red); }
+.verdict { margin-top: 10px; font-size: 16px; }
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; background: #000;
+  border-top: 2px solid var(--red); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav button {
+  flex: 1; min-height: 64px; font-size: 15px; font-weight: 700; color: var(--muted);
+  background: transparent; border: 0; cursor: pointer; padding: 0 2px;
+}
+.nav button.active { color: #fff; box-shadow: inset 0 3px 0 var(--red); background: rgba(225, 6, 0, .15); }
+.toast {
+  position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: #fff; color: #000; padding: 10px 16px; border-radius: 999px; font-size: 16px; font-weight: 700;
+  opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 20; max-width: 90%; text-align: center;
+}
+.toast.show { opacity: 1; }
+.modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .75); display: flex; align-items: center; justify-content: center; z-index: 30; padding: 16px; }
+.modal[hidden] { display: none; }
+.modal-box { background: var(--card); border: 2px solid var(--red); border-radius: 16px; padding: 16px; width: 100%; max-width: 420px; }
+.modal-box h2 { margin: 0 0 8px; font-size: 20px; }
+.modal-box input { width: 100%; margin: 8px 0 0; }
+.modal-box .row { display: flex; gap: 8px; margin-top: 12px; }
+.modal-box .row .btn { flex: 1; }
+[hidden] { display: none !important; }
