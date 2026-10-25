@@ -104,3 +104,8 @@ input[type=text]:focus, select:focus { outline: none; border-color: var(--red); 
 .modal-box .row { display: flex; gap: 8px; margin-top: 12px; }
 .modal-box .row .btn { flex: 1; }
 [hidden] { display: none !important; }
+
+.banner.warn { background: #4a0f0c; border-bottom: 2px solid #ff3b30; font-weight: 700; }
+.sigbig { font-size: 24px; font-weight: 800; margin: 6px 0; color: var(--muted); }
+.sigbig.on { color: #fff; border-left: 4px solid var(--red); padding-left: 10px; }
+#undoBtn { margin-top: 8px; }

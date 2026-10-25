@@ -1,5 +1,5 @@
 /* Network-first: you always get the newest files when online; the cache is the offline fallback. */
-const CACHE = 'ck444-tracker-v1';
+const CACHE = 'ck444-tracker-v2';
 const ASSETS = ['./', './index.html', './style.css', './app.js', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

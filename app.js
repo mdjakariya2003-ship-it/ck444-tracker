@@ -105,6 +105,55 @@ function indicators(vals) {
   return out;
 }
 
+/** Complementary error function (Abramowitz-Stegun 7.1.26), good to ~1e-7. */
+function erfc(x) {
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return 1 - sign * y;
+}
+
+/**
+ * Randomness checks on the sequence "round >= 2x?" (1/0).
+ * - Wald-Wolfowitz runs test: too few or too many runs means the order is not random-like.
+ * - Lag-1 autocorrelation: does one round's result relate to the next?
+ * These can only say "no evidence of a pattern" or "possible pattern in this sample".
+ */
+function randomnessTests(vals) {
+  const n = vals.length;
+  if (n < MIN_ROUNDS) return { n, sufficient: false };
+  const b = vals.map(v => (v >= THRESHOLD ? 1 : 0));
+  const n1 = b.reduce((a, x) => a + x, 0), n0 = n - n1;
+  if (n1 === 0 || n0 === 0) return { n, sufficient: false };
+  let runs = 1;
+  for (let i = 1; i < n; i++) if (b[i] !== b[i - 1]) runs++;
+  const mean = 2 * n1 * n0 / n + 1;
+  const variance = (mean - 1) * (mean - 2) / (n - 1);
+  const z = variance > 0 ? (runs - mean) / Math.sqrt(variance) : 0;
+  const p = Math.min(1, erfc(Math.abs(z) / Math.SQRT2));
+  const m = n1 / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) {
+    den += (b[i] - m) * (b[i] - m);
+    if (i < n - 1) num += (b[i] - m) * (b[i + 1] - m);
+  }
+  const r1 = den > 0 ? num / den : 0;
+  const r1Limit = 1.96 / Math.sqrt(n);
+  return {
+    n, sufficient: true, runs, expectedRuns: mean, z, p, r1, r1Limit,
+    flagged: p < 0.05 || Math.abs(r1) > r1Limit
+  };
+}
+
+/** How many rounds were recorded since local midnight. */
+function todayCount(rowsList, now) {
+  const d = new Date(now === undefined ? Date.now() : now);
+  d.setHours(0, 0, 0, 0);
+  const start = d.getTime();
+  return rowsList.filter(r => r.ts >= start).length;
+}
+
 /** Synthetic crash-style numbers for DEMO ONLY (not real game results). */
 function genDemo(count, rng) {
   rng = rng || Math.random;
@@ -184,6 +233,20 @@ const I18N = {
     demo_loaded: 'ডেমো ডেটা লোড হয়েছে', cleared: 'মুছে ফেলা হয়েছে',
     demo_banner: 'ডেমো মোড: এই ডেটা কৃত্রিম, আসল গেমের ফলাফল নয়।', demo_badge: 'ডেমো',
     install: 'অ্যাপ হিসেবে ইন্সটল করুন',
+    undo: 'শেষ এন্ট্রি বাতিল (Undo)', undone: 'শেষ এন্ট্রি বাতিল হয়েছে',
+    sigcard_title: 'এখনকার পরীক্ষামূলক সূচক',
+    sigcard_active: 'শর্ত পূর্ণ: টানা {s}টি 2x এর নিচে',
+    sigcard_idle: 'এখন কোনো সূচক সক্রিয় নেই',
+    sigcard_record: 'পরীক্ষিত রেকর্ড: {t}টির মধ্যে {c}টি সঠিক, সাধারণ হার {b}',
+    sigcard_note: 'এটি ভবিষ্যদ্বাণী নয়। পরের রাউন্ড সম্পূর্ণ এলোমেলো হতে পারে।',
+    rnd_title: 'এলোমেলো কি না যাচাই',
+    rnd_runs: 'Runs টেস্ট: p-মান', rnd_runs_n: 'রান সংখ্যা (প্রত্যাশিত)', rnd_r1: 'লাগোয়া রাউন্ডের সম্পর্ক (lag-1)', rnd_limit: 'সাধারণ সীমা',
+    rnd_v_ok: 'ফলাফল: এই ডেটায় কোনো প্যাটার্নের প্রমাণ নেই। ফল এলোমেলোর মতোই আচরণ করছে।',
+    rnd_v_flag: 'ফলাফল: এই নমুনায় সম্ভাব্য প্যাটার্ন দেখা যাচ্ছে। তবে প্রতি ২০টি টেস্টের ১টিতে কাকতালীয়ভাবেই এমন আসে। আরও ডেটা জমিয়ে আবার দেখুন। এটা সিগনালের প্রমাণ নয়।',
+    rnd_note: 'ম্যানুয়াল এন্ট্রিতে ভুল বা বাদ পড়া রাউন্ড থাকলে ফলাফল বিভ্রান্ত করতে পারে।',
+    set_limit: 'আজকের রাউন্ড সীমা (বিরতির রিমাইন্ডার)', limit_off: 'বন্ধ',
+    limit_note: 'আজ যত রাউন্ড লিখেছেন তা গুনে সীমা পার হলে সতর্ক করে।',
+    limit_banner: 'আজ {c}টি রাউন্ড লেখা হয়েছে, আপনার সীমা {l}। একটু বিরতি নিন।',
     live_title: 'লাইভ স্ক্রিন রিডিং (OCR)',
     live_body: 'এই ওয়েব অ্যাপ (PWA) অন্য অ্যাপের স্ক্রিন পড়তে পারে না। Android Chrome-এ অন্য অ্যাপের স্ক্রিন ক্যাপচার সমর্থিত নয়।\nভবিষ্যতে আলাদা Android অ্যাপে MediaProjection (স্পষ্ট ব্যবহারকারী অনুমতিসহ) ও অন-ডিভাইস OCR দিয়ে দেখা মাল্টিপ্লায়ার পড়ার চেষ্টা করা সম্ভব, কিন্তু এখানে তৈরি করা হয়নি। কোনো লগইন, নিরাপত্তা বা অ্যান্টি-বট ব্যবস্থা এড়ানো হবে না এবং সার্ভারের গোপন ডেটা পাওয়ার দাবি করা হবে না। সাইটের নিয়মাবলিও দেখে নিন।\nতাই নির্ভরযোগ্য পদ্ধতি হলো ম্যানুয়াল এন্ট্রি, যেটা এখানে আছে।'
   },
@@ -238,6 +301,20 @@ const I18N = {
     demo_loaded: 'Demo data loaded', cleared: 'Cleared',
     demo_banner: 'DEMO MODE: this data is synthetic, not real game results.', demo_badge: 'DEMO',
     install: 'Install as app',
+    undo: 'Undo last entry', undone: 'Last entry removed',
+    sigcard_title: 'Experimental indicator now',
+    sigcard_active: 'Condition met: {s} in a row below 2x',
+    sigcard_idle: 'No indicator is active right now',
+    sigcard_record: 'Tested record: {c} of {t} correct, baseline {b}',
+    sigcard_note: 'This is not a prediction. The next round can be completely random.',
+    rnd_title: 'Randomness check',
+    rnd_runs: 'Runs test: p-value', rnd_runs_n: 'Runs (expected)', rnd_r1: 'Neighbour-round correlation (lag-1)', rnd_limit: 'Normal limit',
+    rnd_v_ok: 'Result: no evidence of a pattern in this data. Results behave like random.',
+    rnd_v_flag: 'Result: a possible pattern appears in this sample. About 1 in 20 tests shows this by pure chance. Collect more data and check again. This is not proof of a signal.',
+    rnd_note: 'Mistyped or missing manual entries can distort the result.',
+    set_limit: 'Daily round limit (break reminder)', limit_off: 'Off',
+    limit_note: 'Counts rounds you entered today and warns when the limit is passed.',
+    limit_banner: '{c} rounds entered today; your limit is {l}. Take a break.',
     live_title: 'Live screen reading (OCR)',
     live_body: 'This web app (PWA) cannot read other apps\' screens. Android Chrome does not support capturing other apps\' screens.\nA separate native Android app could try to read the visible multiplier using MediaProjection (with explicit user permission) and on-device OCR, but that is not built here. It would never bypass login, security or anti-bot controls, and it cannot claim access to private server data. Also check the site\'s terms.\nThe reliable method is manual entry, which is what this app provides.'
   }
@@ -253,7 +330,7 @@ let historyLimit = 50;
 let deferredInstall = null;
 
 function defaultState() {
-  return { lang: 'bn', mode: 'real', k: 3, nextId: 1, data: { real: [], demo: [] } };
+  return { lang: 'bn', mode: 'real', k: 3, limit: 0, nextId: 1, data: { real: [], demo: [] } };
 }
 function sanitizeRows(a) {
   if (!Array.isArray(a)) return [];
@@ -269,6 +346,7 @@ function loadState() {
     s.lang = p.lang === 'en' ? 'en' : 'bn';
     s.mode = p.mode === 'demo' ? 'demo' : 'real';
     s.k = [2, 3, 4, 5, 6].includes(p.k) ? p.k : 3;
+    s.limit = [0, 10, 20, 30, 50, 100].includes(p.limit) ? p.limit : 0;
     s.data.real = sanitizeRows(p.data && p.data.real);
     s.data.demo = sanitizeRows(p.data && p.data.demo);
     const maxId = Math.max(0, ...s.data.real.map(r => r.id), ...s.data.demo.map(r => r.id));
@@ -358,6 +436,13 @@ function submitEntry() {
   inp.value = '';
   inp.focus();
 }
+function undoLast() {
+  const list = rows();
+  if (!list.length) { toast(t('no_data')); return; }
+  list.pop();
+  if (saveState()) toast(t('undone'));
+  renderAll();
+}
 async function editRound(id) {
   const r = rows().find(x => x.id === id);
   if (!r) return;
@@ -426,6 +511,12 @@ function renderChrome() {
   $('#demoBanner').hidden = !demo;
   $$('[data-mode]').forEach(b => b.classList.toggle('on', b.getAttribute('data-mode') === state.mode));
   $('#kSelect').value = String(state.k);
+  $('#limitSelect').value = String(state.limit);
+  const lb = $('#limitBanner');
+  const cnt = todayCount(state.data.real);
+  const over = state.limit > 0 && state.mode === 'real' && cnt >= state.limit;
+  lb.hidden = !over;
+  if (over) lb.textContent = t('limit_banner', { c: cnt, l: state.limit });
   $$('.nav button').forEach(b => b.classList.toggle('active', b.getAttribute('data-view') === currentView));
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + currentView));
   $('#entryCard').hidden = !(currentView === 'dashboard' || currentView === 'history');
@@ -445,9 +536,25 @@ function renderDashboard() {
   $('#statAvg').textContent = s.n ? f2(s.mean) + 'x' : '-';
   $('#statBelow').textContent = s.n ? fp(s.pctBelow) : '-';
   $('#statAbove').textContent = s.n ? fp(s.pctAbove) : '-';
+  renderSigCard(vals());
   const recent = rows().slice(-10).reverse();
   $('#recentList').innerHTML = recent.length ? recent.map(r => rowHtml(r, false)).join('')
     : '<li><span class="small">' + t('no_data') + '</span></li>';
+}
+function renderSigCard(v) {
+  let h = '<span class="tag">' + t('sig_badge') + '</span>';
+  if (v.length < MIN_ROUNDS) {
+    h += '<p class="insuf">' + t('insufficient') + '</p><p class="small">' + t('need_data', { n: MIN_ROUNDS, c: v.length }) + '</p>';
+  } else {
+    const e = evaluateSignal(v, state.k);
+    h += '<p class="sigbig' + (e.activeNow ? ' on' : '') + '">' +
+      (e.activeNow ? t('sigcard_active', { s: e.streakNow }) : t('sigcard_idle')) + '</p>';
+    h += e.tested >= MIN_TESTED
+      ? '<p class="small">' + t('sigcard_record', { t: e.tested, c: e.correct, b: fp(e.baseline * 100) }) + '</p>'
+      : '<p class="small">' + t('need_tested', { n: MIN_TESTED, c: e.tested }) + '</p>';
+  }
+  h += '<p class="small">' + t('sigcard_note') + '</p>';
+  $('#sigCardBox').innerHTML = h;
 }
 function renderHistory() {
   const all = rows().slice().reverse();
@@ -475,8 +582,25 @@ function renderAnalysis() {
   $('#bucketBody').innerHTML = b.map(x => '<tr><td>' + x.label + 'x</td><td>' + x.count + '</td><td>' + fp(x.pct) + '</td></tr>').join('');
   drawHistogram($('#histCanvas'), b);
   drawLine($('#lineCanvas'), v.slice(-50));
+  renderRandomness(v);
   renderIndicators(v);
   renderSignal(v);
+}
+function renderRandomness(v) {
+  const r = randomnessTests(v);
+  let h;
+  if (!r.sufficient) {
+    h = '<p class="insuf">' + t('insufficient') + '</p><p class="small">' + t('need_data', { n: MIN_ROUNDS, c: v.length }) + '</p>';
+  } else {
+    h = '<div class="grid">' +
+      statBox(t('rnd_runs'), r.p.toFixed(3)) +
+      statBox(t('rnd_runs_n'), r.runs + ' (' + r.expectedRuns.toFixed(1) + ')') +
+      statBox(t('rnd_r1'), r.r1.toFixed(3)) +
+      statBox(t('rnd_limit'), '±' + r.r1Limit.toFixed(3)) + '</div>' +
+      '<p class="verdict">' + t(r.flagged ? 'rnd_v_flag' : 'rnd_v_ok') + '</p>';
+  }
+  h += '<p class="small">' + t('rnd_note') + '</p>';
+  $('#rndBox').innerHTML = h;
 }
 function renderIndicators(v) {
   const ind = indicators(v);
@@ -610,6 +734,8 @@ function init() {
   $$('[data-mode]').forEach(b => b.addEventListener('click', () => {
     state.mode = b.getAttribute('data-mode'); historyLimit = 50; saveState(); renderAll();
   }));
+  $('#undoBtn').addEventListener('click', undoLast);
+  $('#limitSelect').addEventListener('change', e => { state.limit = parseInt(e.target.value, 10); saveState(); renderAll(); });
   $('#kSelect').addEventListener('change', e => { state.k = parseInt(e.target.value, 10); saveState(); renderAll(); });
   $('#historyList').addEventListener('click', e => {
     const btn = e.target.closest('button[data-act]');
@@ -642,5 +768,5 @@ if (typeof document !== 'undefined') {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 }
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { parseMultiplier, wilson, computeStats, bucketCounts, currentStreak, evaluateSignal, indicators, genDemo, toCsv, I18N, MIN_ROUNDS, MIN_TESTED };
+  module.exports = { randomnessTests, todayCount, erfc, parseMultiplier, wilson, computeStats, bucketCounts, currentStreak, evaluateSignal, indicators, genDemo, toCsv, I18N, MIN_ROUNDS, MIN_TESTED };
 }

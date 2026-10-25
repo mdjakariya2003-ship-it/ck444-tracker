@@ -17,6 +17,7 @@
   <span id="modeBadge" class="badge" hidden></span>
 </header>
 <div id="demoBanner" class="banner" hidden data-i18n="demo_banner"></div>
+<div id="limitBanner" class="banner warn" hidden></div>
 
 <main>
   <!-- Manual entry (shown on Dashboard and History) -->
@@ -28,6 +29,7 @@
       <button id="entryBtn" class="btn" type="button" data-i18n="entry_btn">যোগ করুন</button>
     </div>
     <p id="entryError" class="err" role="alert"></p>
+    <button id="undoBtn" class="btn ghost small" type="button" data-i18n="undo"></button>
   </section>
 
   <!-- Dashboard -->
@@ -37,6 +39,10 @@
       <div class="stat"><span class="label" data-i18n="stat_avg"></span><span id="statAvg" class="value">-</span></div>
       <div class="stat"><span class="label" data-i18n="stat_below"></span><span id="statBelow" class="value">-</span></div>
       <div class="stat"><span class="label" data-i18n="stat_above"></span><span id="statAbove" class="value">-</span></div>
+    </div>
+    <div class="card signal">
+      <h2 data-i18n="sigcard_title"></h2>
+      <div id="sigCardBox"></div>
     </div>
     <div class="card">
       <h2 data-i18n="recent">সাম্প্রতিক রাউন্ড</h2>
@@ -73,6 +79,10 @@
       <canvas id="lineCanvas" class="chart"></canvas>
     </div>
     <div class="card">
+      <h2 data-i18n="rnd_title"></h2>
+      <div id="rndBox"></div>
+    </div>
+    <div class="card">
       <h2 data-i18n="ind_title"></h2>
       <div id="indBox"></div>
     </div>
@@ -105,6 +115,15 @@
       <select id="kSelect" aria-label="streak length">
         <option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
       </select>
+    </div>
+    <div class="card">
+      <h2 data-i18n="set_limit"></h2>
+      <select id="limitSelect" aria-label="daily limit">
+        <option value="0" data-i18n="limit_off"></option>
+        <option value="10">10</option><option value="20">20</option><option value="30">30</option>
+        <option value="50">50</option><option value="100">100</option>
+      </select>
+      <p class="small" data-i18n="limit_note"></p>
     </div>
     <div class="card">
       <h2 data-i18n="set_data"></h2>
